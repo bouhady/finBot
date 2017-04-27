@@ -16,6 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
+            android:textAlignment="center"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
@@ -26,7 +27,7 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:context="com.fedexday.trump.trump.MainActivity"
         tools:showIn="@layout/activity_main"
-        android:background="@android:color/darker_gray">
+        android:background="@android:color/white">
 
         <ImageView
             android:layout_width="408dp"
@@ -40,51 +41,82 @@
             android:elevation="4dp"
     />
         <EditText
-            android:layout_width="0dp"
-            android:layout_height="37dp"
+            android:layout_width="320dp"
+            android:layout_height="27dp"
             android:id="@+id/main_user_edit_text"
             android:elevation="4dp"
-            android:background="@android:color/white"
             android:inputType="text"
+            android:visibility="gone"
+            android:layout_marginRight="8dp"
+            android:layout_marginLeft="8dp"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintBottom_toBottomOf="@+id/view"
-            app:layout_constraintTop_toTopOf="@+id/view"
-            app:layout_constraintRight_toRightOf="@+id/view"
-            android:layout_margin="8dp"
+            app:layout_constraintHorizontal_bias="0.0"
+            android:background="@drawable/rounded_edittext_states"
+            app:layout_constraintRight_toLeftOf="@+id/keyboard_option"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="8dp"
+            tools:layout_editor_absoluteY="476dp" />
+
+        <ImageButton
+            android:id="@+id/fab"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/fab"
+android:elevation="4dp"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
+
+        <ImageButton
+            android:id="@+id/keyboard_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:src="@drawable/keyboard_icon"
+            android:background="@android:color/transparent"
+
+            android:scaleType="fitXY"
+            android:elevation="8dp"
+            android:layout_marginRight="26dp"
+            android:padding="10dp"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="16dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
             android:visibility="gone"/>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/main_bot_recycler"
             android:layout_width="353dp"
             android:layout_height="0dp"
+            android:layout_marginBottom="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/fab"
             app:layout_constraintHorizontal_bias="0.533"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_weight="1"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/main_user_edit_text"
-            app:layout_constraintVertical_bias="1.0">
+            app:layout_constraintVertical_bias="0.0"
+            app:layout_constraintVertical_weight="1">
 
         </android.support.v7.widget.RecyclerView>
 
-
     </android.support.constraint.ConstraintLayout>
 
-    <ImageButton
-        android:id="@+id/fab"
-        android:layout_width="52dp"
-        android:layout_height="52dp"
-        android:layout_gravity="bottom|center"
-        android:layout_margin="@dimen/fab_margin"
-        android:background="@drawable/fab"
 
-
-        />
 
 </android.support.design.widget.CoordinatorLayout>

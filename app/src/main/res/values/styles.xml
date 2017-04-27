@@ -16,5 +16,10 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="TextStyle">
+        <item name="android:textSize">13.3sp</item>
+        <item name="android:lineSpacingExtra">5.3sp</item>
+        <item name="android:textColor">@color/dodger_blue</item>
+    </style>
 
 </resources>

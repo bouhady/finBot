@@ -1,5 +1,7 @@
 package com.fedexday.trump.trump;
 
+import android.widget.EditText;
+
 import rx.Observable;
 
 /**
@@ -8,10 +10,12 @@ import rx.Observable;
 
 public interface TrumpMVP {
     public interface View{
-        Observable getMainUserObservable();
+        Observable getMainUserObservable(EditText editText);
         void appendToRecyclerView(String line , int side);
         void resetEditText();
         public void ttsSpeak(String line);
+        void progressBarVisability(boolean visible);
+        void exit();
     }
 
     public interface Presenter{

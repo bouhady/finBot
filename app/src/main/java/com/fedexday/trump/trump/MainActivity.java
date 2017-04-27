@@ -1,6 +1,7 @@
 package com.fedexday.trump.trump;
 
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
@@ -13,8 +14,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.jakewharton.rxbinding.widget.RxTextView;
@@ -26,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -41,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements TrumpMVP.View, Te
     TrumpMVP.Presenter trumpPresenter;
     TrumpRetrofitService trumpRetrofitService;
     TextToSpeech tts;
+    EditText voiceRecognitionEditText;
 
     private FabMoveAnimation fabMoveAnimation;
 
@@ -57,6 +63,12 @@ public class MainActivity extends AppCompatActivity implements TrumpMVP.View, Te
     @BindView(R.id.fab)
     ImageButton fab;
 
+    @BindView(R.id.keyboard_option)
+    ImageButton keyboardButton;
+
+    @BindView(R.id.progressBar)
+    ProgressBar progressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,16 +76,11 @@ public class MainActivity extends AppCompatActivity implements TrumpMVP.View, Te
         ButterKnife.bind(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        voiceRecognitionEditText = new EditText(this);
 
         fabMoveAnimation = new FabMoveAnimation(fab);
 
         fab.setOnClickListener(view -> {
-            fab.post(new Runnable() {
-                @Override
-                public void run() {
-                   fabMoveAnimation.moveAway();
-                }
-            });
             promptSpeechInput();
         });
 
@@ -81,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements TrumpMVP.View, Te
         trumpPresenter = new TrumpPresenterImpl();
         trumpPresenter.setView(this);
         trumpPresenter.setRetrofitService(trumpRetrofitService);
-        trumpPresenter.listenVoice(getEditTextObservable(mainUserEditTest));
+        trumpPresenter.listenVoice(getMainUserObservable(mainUserEditTest));
 
         tts = new TextToSpeech(this, this);
         tts.setLanguage(Locale.US);
@@ -123,8 +130,16 @@ public class MainActivity extends AppCompatActivity implements TrumpMVP.View, Te
     }
 
     @Override
-    public Observable getMainUserObservable() {
-        return null;
+    public Observable getMainUserObservable(EditText editText) {
+        return Observable.merge(getEditTextObservable(editText),getVoiceRecognitionObservable());
+    }
+
+    private Observable getVoiceRecognitionObservable() {
+        return
+                RxTextView
+                        .textChanges(voiceRecognitionEditText)
+                        .filter(charSequence -> !(charSequence.length() == 0))
+                        ;
     }
 
     @Override
@@ -137,17 +152,34 @@ public class MainActivity extends AppCompatActivity implements TrumpMVP.View, Te
 
     @Override
     public void ttsSpeak(String line) {
-        String utteranceId=this.hashCode() + "";
+        String utteranceId=(line.equals("bye bye")) ? "bye bye" : this.hashCode() + "" ;
         tts.speak(line, TextToSpeech.QUEUE_FLUSH, null,utteranceId);
-        Toast.makeText(this,line,Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void progressBarVisability(boolean visible) {
+        progressBar.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void exit() {
+        finish();
     }
 
     @Override
     public void resetEditText() {
-        runOnUiThread(() -> {
+//        runOnUiThread(() -> {
+        String manualString = mainUserEditTest.getText().toString();
+        String voiceString = voiceRecognitionEditText.getText().toString();
+
+        if (manualString.isEmpty())
+            appendToRecyclerView(voiceRecognitionEditText.getText().toString(),FeedItem.USER);
+        else
             appendToRecyclerView(mainUserEditTest.getText().toString(),FeedItem.USER);
-            mainUserEditTest.setText("");
-        });
+
+        mainUserEditTest.setText("");
+        voiceRecognitionEditText.setText("");
+//        });
     }
 
     private Retrofit initRetrofit(){
@@ -172,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements TrumpMVP.View, Te
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.US);
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
                 getString(R.string.speech_prompt));
         try {
@@ -184,6 +216,21 @@ public class MainActivity extends AppCompatActivity implements TrumpMVP.View, Te
         }
     }
 
+    @OnClick(R.id.keyboard_option)
+    void keyboardButton(){
+        if (mainUserEditTest.getVisibility() == View.GONE){
+            fabMoveAnimation.moveAway();
+            mainUserEditTest.setVisibility(View.VISIBLE);
+
+        } else {
+            fabMoveAnimation.moveBack();
+            mainUserEditTest.setVisibility(View.GONE);
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(mainUserEditTest.getWindowToken(), 0);
+        }
+
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -191,10 +238,9 @@ public class MainActivity extends AppCompatActivity implements TrumpMVP.View, Te
         switch (requestCode) {
             case REQ_CODE_SPEECH_INPUT: {
                 if (resultCode == RESULT_OK && null != data) {
-
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    mainUserEditTest.setText(result.get(0));
+                    voiceRecognitionEditText.setText(result.get(0));
                     fabMoveAnimation.moveBack();
                 }
                 break;
@@ -210,23 +256,23 @@ public class MainActivity extends AppCompatActivity implements TrumpMVP.View, Te
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                     @Override
                     public void onStart(String utteranceId) {
-
                     }
 
                     @Override
                     public void onDone(String utteranceId) {
-//                        mainUserEditTest.setFocusableInTouchMode(true);
-//                        mainUserEditTest.requestFocus();
-
-
+                        if (utteranceId.equals("bye bye"))
+                            exit();
+                        Observable.timer(500,TimeUnit.MILLISECONDS)
+                                .subscribe(aLong -> promptSpeechInput());
                     }
 
                     @Override
                     public void onError(String utteranceId) {
-
                     }
                 });
             }
         }
     }
+
+
 }

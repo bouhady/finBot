@@ -2,8 +2,6 @@ package com.fedexday.trump.trump;
 
 import android.util.Log;
 
-import java.util.concurrent.TimeUnit;
-
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -31,15 +29,21 @@ class TrumpPresenterImpl implements TrumpMVP.Presenter {
     @Override
     public void listenVoice(Observable<CharSequence> editTextObservable) {
         editTextObservable
-                .debounce(1000, TimeUnit.MILLISECONDS)
-                .onErrorReturn(throwable -> {
-                    Log.e(TAG, "Error223", throwable);
-                    return "";
-                })
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(charSequence -> {
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(charSequence -> {
                     trumpView.resetEditText();
+                    trumpView.progressBarVisability(true);
+                })
+                .observeOn(Schedulers.io())
+                .subscribe(charSequence -> {
+                    if (charSequence.toString().equals("bye bye"))
+                    {
+                        trumpView.progressBarVisability(false);
+                        trumpView.appendToRecyclerView(charSequence.toString(), FeedItem.BOT);
+                        trumpView.ttsSpeak(charSequence.toString());
+                        trumpView.exit();
+                    } else
                     trumpRetrofitService.askTrump(charSequence.toString())
                             .doOnSubscribe(() -> Log.d(TAG, "Subscribe!"))
                             .subscribeOn(Schedulers.io())
@@ -47,7 +51,7 @@ class TrumpPresenterImpl implements TrumpMVP.Presenter {
                             .onErrorReturn(throwable -> new TrumpResponse("Error"))
                             .subscribe(trumpResponse -> {
                                 Log.d(TAG, trumpResponse.getResponseText());
-//                                trumpView.resetEditText();
+                                trumpView.progressBarVisability(false);
                                 trumpView.appendToRecyclerView(trumpResponse.getResponseText(), FeedItem.BOT);
                                 trumpView.ttsSpeak(trumpResponse.getResponseText());
                             });

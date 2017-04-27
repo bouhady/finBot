@@ -8,17 +8,22 @@
     android:paddingTop="10dp"
     android:paddingBottom="10dp"
     android:clickable="true"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:id="@+id/list_item_linearlayout"
+    android:gravity="end"
+    >
 
     <TextView
         android:id="@+id/chat_item_textview"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:elevation="4dp"
         android:padding="5dp"
+        android:text="exaple text"
+
         />
 
 </LinearLayout>
