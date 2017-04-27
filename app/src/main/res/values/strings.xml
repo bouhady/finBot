@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Trump</string>
+    <string name="app_name">FinBot</string>
     <string name="action_settings">Settings</string>
     <string name="speech_not_supported">speech_not_supported</string>
     <string name="speech_prompt">What do you want to know?</string>
